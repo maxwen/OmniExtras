@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">OmniExtras</string>
+    <string name="show_alarm_title">Show next alarm</string>
+    <string name="show_date_title">Show date</string>
+    <string name="custom_gadget">Digital clock</string>
+    <string name="clock_shadow_title">Shadow</string>
+    <string name="analog_gadget">Analog clock</string>
+    <string name="abbrev_wday_month_day_no_year" translatable="false">EEEMMMd</string>
+    <string name="full_wday_month_day_no_year" translatable="false">EEEEMMMMd</string>
+    <string name="font_sample_text" translatable="false">11:57</string>
+    <string name="clock_font_title">Font</string>
+    <string name="clock_color_title">Color</string>
+
+</resources>
