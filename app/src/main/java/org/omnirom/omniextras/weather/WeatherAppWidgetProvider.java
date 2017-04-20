@@ -110,8 +110,9 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
             updateAllWeather(context);
         }
         if (action.equals(REFRESH_BROADCAST)) {
+            showUpdateProgress(context);
             OmniJawsClient weatherClient = new OmniJawsClient(context);
-            weatherClient.updateWeather(true);
+            weatherClient.updateWeather();
         }
         super.onReceive(context, intent);
     }
@@ -152,6 +153,20 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    public static void showUpdateProgress(Context context) {
+        if (LOGGING) {
+            Log.i(TAG, "showUpdateProgress");
+        }
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        if (appWidgetManager != null) {
+            ComponentName componentName = new ComponentName(context, WeatherAppWidgetProvider.class);
+            int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
+            for (int appWidgetId : appWidgetIds) {
+                showProgress(context, appWidgetManager, appWidgetId);
+            }
+        }
+    }
+
     private static void updateWeather(
             Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
 
@@ -178,12 +193,15 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
             widget.setViewVisibility(R.id.current_weather_data, View.GONE);
             widget.setViewVisibility(R.id.condition_line, View.GONE);
             widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
+            widget.setViewVisibility(R.id.progress_container, View.GONE);
+            appWidgetManager.updateAppWidget(appWidgetId, widget);
             return;
         }
         Log.i(TAG, "updateWeather " + weatherData.toString());
         widget.setViewVisibility(R.id.no_weather_notice, View.GONE);
         widget.setViewVisibility(R.id.condition_line, View.VISIBLE);
         widget.setViewVisibility(R.id.current_weather_data, View.VISIBLE);
+        widget.setViewVisibility(R.id.progress_container, View.GONE);
 
         Bundle newOptions = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int minHeight = context.getResources().getDimensionPixelSize(R.dimen.weather_widget_height);
@@ -266,6 +284,19 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         widget.setTextViewText(R.id.current_weather_data, weatherData.windSpeed + " " + weatherData.windUnits + " " + weatherData.windDirection + " - " +
                 weatherData.humidity);
 
+        appWidgetManager.updateAppWidget(appWidgetId, widget);
+    }
+
+    private static void showProgress(
+            Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+
+        if (LOGGING) {
+            Log.i(TAG, "showProgress " + appWidgetId);
+        }
+
+        RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
+        widget.setViewVisibility(R.id.condition_line, View.GONE);
+        widget.setViewVisibility(R.id.progress_container, View.VISIBLE);
         appWidgetManager.updateAppWidget(appWidgetId, widget);
     }
 
