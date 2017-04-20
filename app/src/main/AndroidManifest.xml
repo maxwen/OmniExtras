@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.omnirom.omniextras">
 
+    <uses-permission android:name="org.omnirom.omnijaws.READ_WEATHER" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/omnirom_logo"
@@ -15,22 +17,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver
-            android:name=".alarmclock.CustomAnalogAppWidgetProvider"
-            android:icon="@drawable/omnirom_logo"
-            android:label="@string/analog_gadget">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-                <action android:name="android.intent.action.SCREEN_ON" />
-                <action android:name="android.intent.action.TIME_SET" />
-                <action android:name="android.intent.action.LOCALE_CHANGED" />
-                <action android:name="android.app.action.NEXT_ALARM_CLOCK_CHANGED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/custom_analog_appwidget" />
-        </receiver>
 
         <receiver
             android:name=".alarmclock.CustomAppWidgetProvider"
@@ -38,14 +24,12 @@
             android:label="@string/custom_gadget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.maxwen.deskclock.ON_QUARTER_HOUR" />
                 <action android:name="android.intent.action.DATE_CHANGED" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.SCREEN_ON" />
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.LOCALE_CHANGED" />
                 <action android:name="android.app.action.NEXT_ALARM_CLOCK_CHANGED" />
-                <action android:name="com.maxwen.deskclock.worldclock.update" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -55,19 +39,33 @@
             android:name=".alarmclock.CustomAppWidgetProvider$ClockUpdateService"
             android:exported="false" />
 
-        <service
-            android:name=".alarmclock.CustomAnalogAppWidgetProvider$AnalogClockUpdateService"
-            android:exported="false" />
-
-        <activity android:name=".alarmclock.CustomAppWidgetConfigure" >
+        <activity android:name=".alarmclock.CustomAppWidgetConfigure">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".alarmclock.CustomAnalogAppWidgetConfigure" >
+        <receiver
+            android:name=".weather.WeatherAppWidgetProvider"
+            android:icon="@drawable/omnirom_logo"
+            android:label="@string/weather_widget">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/weather_appwidget" />
+        </receiver>
+        <service
+            android:name=".weather.WeatherAppWidgetProvider$WeatherUpdateService"
+            android:exported="false" />
+        <activity
+            android:name=".weather_color"
+            android:label="LockClock (color)">
+            <intent-filter>
+                <action android:name="org.omnirom.WeatherIconPack" />
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
     </application>

@@ -20,7 +20,7 @@
     android:updatePeriodMillis="0"
     android:previewImage="@drawable/appwidget_custom_analog_clock_preview"
     android:initialLayout="@layout/custom_analog_appwidget"
-    android:widgetCategory="keyguard|home_screen"
+    android:widgetCategory="home_screen"
     android:configure="org.omnirom.omniextras.alarmclock.CustomAnalogAppWidgetConfigure"
     android:minResizeWidth="@dimen/min_analog_widget_resize_size"
     android:minResizeHeight="@dimen/min_analog_widget_resize_size"

@@ -8,4 +8,6 @@
     <color name="analog_clock_minute_hand_color">#28abe3</color>
     <color name="analog_clock_seconds_hand_color">@color/colorAccent</color>
     <color name="analog_clock_alarm_color">#d72929</color>
+    <color name="omni_jaws_detailed_temperature_color">@android:color/white</color>
+
 </resources>

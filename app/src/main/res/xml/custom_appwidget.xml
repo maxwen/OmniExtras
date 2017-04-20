@@ -23,7 +23,7 @@
     android:resizeMode="vertical|horizontal"
     android:minResizeWidth="@dimen/min_custom_widget_resize_width"
     android:minResizeHeight="@dimen/min_custom_widget_resize_height"
-    android:widgetCategory="keyguard|home_screen"
+    android:widgetCategory="home_screen"
     android:configure="org.omnirom.omniextras.alarmclock.CustomAppWidgetConfigure"
     >
 </appwidget-provider>
