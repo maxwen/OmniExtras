@@ -13,5 +13,6 @@
     <string name="omnijaws_service_unkown">No weather data</string>
     <string name="weather_widget">Weather</string>
     <string name="omnijaws_current_text">Now</string>
+    <string name="weather_icon_pack_title">Condition icon pack</string>
 
 </resources>

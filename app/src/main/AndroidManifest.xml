@@ -59,6 +59,12 @@
         <service
             android:name=".weather.WeatherAppWidgetProvider$WeatherUpdateService"
             android:exported="false" />
+
+        <activity android:name=".weather.WeatherAppWidgetConfigure">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".weather_color"
             android:label="LockClock (color)">

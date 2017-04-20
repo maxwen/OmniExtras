@@ -116,7 +116,7 @@ public class OmniJawsClient {
 
     public OmniJawsClient(Context context) {
         mContext = context;
-        updateSettings();
+        loadDefaultIconsPackage();
     }
 
 
@@ -217,7 +217,8 @@ public class OmniJawsClient {
         }
     }
 
-    private void loadIconPackage() {
+    public void loadIconPackage(String iconPack) {
+        mSettingIconPackage = iconPack;
         int idx = mSettingIconPackage.lastIndexOf(".");
         mPackageName = mSettingIconPackage.substring(0, idx);
         mIconPrefix = mSettingIconPackage.substring(idx + 1);
@@ -312,19 +313,6 @@ public class OmniJawsClient {
 
     private String getWindUnit() {
         return mMetric ? "km/h":"mph";
-    }
-
-    private void updateSettings() {
-        if (isOmniJawsServiceInstalled()) {
-            /*final String iconPack = Settings.System.getStringForUser(mContext.getContentResolver(),
-                    Settings.System.OMNIJAWS_WEATHER_ICON_PACK, UserHandle.USER_CURRENT);
-            if (iconPack == null) {*/
-                loadDefaultIconsPackage();
-            /*} else if (mSettingIconPackage == null || !iconPack.equals(mSettingIconPackage)) {
-                mSettingIconPackage = iconPack;
-                loadCustomIconPackage();
-            }*/
-        }
     }
 
     private boolean isAvailableApp(String packageName) {

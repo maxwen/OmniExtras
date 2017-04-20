@@ -23,5 +23,7 @@
     android:resizeMode="vertical|horizontal"
     android:minResizeWidth="@dimen/min_weather_widget_resize_width"
     android:minResizeHeight="@dimen/min_weather_widget_resize_height"
-    android:widgetCategory="home_screen" >
+    android:widgetCategory="home_screen"
+    android:configure="org.omnirom.omniextras.weather.WeatherAppWidgetConfigure"
+    >
 </appwidget-provider>
