@@ -51,14 +51,13 @@
             android:label="@string/weather_widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="org.omnirom.omnijaws.WEATHER_UPDATE" />
+                <action android:name="org.omnirom.omniextras.WEATHER_REFRESH" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/weather_appwidget" />
         </receiver>
-        <service
-            android:name=".weather.WeatherAppWidgetProvider$WeatherUpdateService"
-            android:exported="false" />
 
         <activity android:name=".weather.WeatherAppWidgetConfigure">
             <intent-filter>

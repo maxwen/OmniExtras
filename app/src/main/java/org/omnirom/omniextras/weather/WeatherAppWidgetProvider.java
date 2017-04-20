@@ -59,55 +59,7 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
     private static final String TAG = "WeatherAppWidgetProvider";
     public static final boolean LOGGING = true;
     private static final String REFRESH_BROADCAST = "org.omnirom.omniextras.WEATHER_REFRESH";
-
-    public static class WeatherUpdateService extends Service {
-        private final BroadcastReceiver mWeatherChangedReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-                if (LOGGING) {
-                    Log.i(TAG, "WeatherUpdateService:onReceive: " + action);
-                }
-                if (action.equals("org.omnirom.omnijaws.WEATHER_UPDATE")) {
-                    updateAllWeather(context);
-                }
-                if (action.equals(REFRESH_BROADCAST)) {
-                    OmniJawsClient weatherClient = new OmniJawsClient(context);
-                    weatherClient.updateWeather(true);
-                }
-            }
-        };
-
-        @Override
-        public IBinder onBind(Intent intent) {
-            return null;
-        }
-
-        @Override
-        public void onCreate() {
-            super.onCreate();
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction("org.omnirom.omnijaws.WEATHER_UPDATE");
-            intentFilter.addAction(REFRESH_BROADCAST);
-            registerReceiver(mWeatherChangedReceiver, intentFilter);
-
-            OmniJawsClient weatherClient = new OmniJawsClient(this);
-            weatherClient.updateWeather(true);
-
-            if (LOGGING) {
-                Log.i(TAG, "WeatherUpdateService:onCreate");
-            }
-        }
-
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
-            unregisterReceiver(mWeatherChangedReceiver);
-            if (LOGGING) {
-                Log.i(TAG, "WeatherUpdateService:onDestroy");
-            }
-        }
-    }
+    private static final String WEATHER_UPDATE = "org.omnirom.omnijaws.WEATHER_UPDATE";
 
     @Override
     public void onEnabled(Context context) {
@@ -115,7 +67,6 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         if (LOGGING) {
             Log.i(TAG, "onEnabled");
         }
-        context.startService(new Intent(context, WeatherUpdateService.class));
     }
 
     @Override
@@ -124,7 +75,6 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         if (LOGGING) {
             Log.i(TAG, "onDisabled");
         }
-        context.stopService(new Intent(context, WeatherUpdateService.class));
     }
 
     @Override
@@ -152,13 +102,23 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (LOGGING) {
+            Log.i(TAG, "WeatherUpdateService:onReceive: " + action);
+        }
+        if (action.equals(WEATHER_UPDATE)) {
+            updateAllWeather(context);
+        }
+        if (action.equals(REFRESH_BROADCAST)) {
+            OmniJawsClient weatherClient = new OmniJawsClient(context);
+            weatherClient.updateWeather(true);
+        }
         super.onReceive(context, intent);
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        context.startService(new Intent(context, WeatherUpdateService.class));
     }
 
     @Override
@@ -205,15 +165,26 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         if (!TextUtils.isEmpty(iconPack)) {
             weatherClient.loadIconPackage(iconPack);
         }
+
+        RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
+        Intent refreshIntent = new Intent();
+        refreshIntent.setAction(REFRESH_BROADCAST);
+        widget.setOnClickPendingIntent(R.id.refresh,
+                PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
+
         OmniJawsClient.WeatherInfo weatherData = weatherClient.getWeatherInfo();
         if (weatherData == null) {
             Log.i(TAG, "updateWeather weatherData == null");
+            widget.setViewVisibility(R.id.current_weather_data, View.GONE);
+            widget.setViewVisibility(R.id.condition_line, View.GONE);
+            widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
             return;
         }
         Log.i(TAG, "updateWeather " + weatherData.toString());
+        widget.setViewVisibility(R.id.no_weather_notice, View.GONE);
+        widget.setViewVisibility(R.id.condition_line, View.VISIBLE);
+        widget.setViewVisibility(R.id.current_weather_data, View.VISIBLE);
 
-
-        RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
         Bundle newOptions = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int minHeight = context.getResources().getDimensionPixelSize(R.dimen.weather_widget_height);
         int minWidth = context.getResources().getDimensionPixelSize(R.dimen.weather_widget_width);
@@ -227,11 +198,6 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         }
         boolean showDays = currentHeight > minHeight ? true : false;
         boolean showLocalDetails = currentHeight > minHeight ? true : false;
-
-        Intent refreshIntent = new Intent();
-        refreshIntent.setAction(REFRESH_BROADCAST);
-        widget.setOnClickPendingIntent(R.id.refresh,
-                PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
 
         Long timeStamp = weatherData.timeStamp;
         String format = DateFormat.is24HourFormat(context) ? "HH:mm" : "hh:mm a";
