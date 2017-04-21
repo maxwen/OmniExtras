@@ -25,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -39,6 +40,8 @@ import java.util.List;
 public class WeatherAppWidgetConfigure extends PreferenceActivity {
 
     public static final String KEY_ICON_PACK = "weather_icon_pack";
+    public static final String KEY_BACKGROUND_SHADOW = "show_background";
+
     private static final String DEFAULT_WEATHER_ICON_PACKAGE = "org.omnirom.omniextras";
     private static final String CHRONUS_ICON_PACK_INTENT = "com.dvtonder.chronus.ICON_PACK";
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
@@ -67,7 +70,7 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
 
         final ListPreference iconPack = (ListPreference) findPreference(KEY_ICON_PACK) ;
 
-        String settingHeaderPackage = DEFAULT_WEATHER_ICON_PACKAGE;
+        String settingHeaderPackage = prefs.getString(KEY_ICON_PACK + "_" + mAppWidgetId, DEFAULT_WEATHER_ICON_PACKAGE);
 
         List<String> entries = new ArrayList<String>();
         List<String> values = new ArrayList<String>();
@@ -92,6 +95,17 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
                 return false;
             }
         });
+
+        initPreference(KEY_BACKGROUND_SHADOW, prefs.getBoolean(KEY_BACKGROUND_SHADOW + "_" + mAppWidgetId, false));
+    }
+
+    private void initPreference(String key, boolean value) {
+        CheckBoxPreference b = (CheckBoxPreference) findPreference(key);
+        b.setKey(key + "_" + String.valueOf(mAppWidgetId));
+        b.setDefaultValue(value);
+        b.setChecked(value);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.edit().putBoolean(b.getKey(), value).commit();
     }
 
     public void handleOkClick(View v) {
@@ -105,6 +119,7 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
     public static void clearPrefs(Context context, int id) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().remove(KEY_ICON_PACK + "_" + id).commit();
+        prefs.edit().remove(KEY_BACKGROUND_SHADOW + "_" + id).commit();
     }
 
     public static void remapPrefs(Context context, int oldId, int newId) {
@@ -113,6 +128,10 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
         String oldValue = prefs.getString(KEY_ICON_PACK + "_" + oldId, "");
         prefs.edit().putString(KEY_ICON_PACK + "_" + newId, oldValue).commit();
         prefs.edit().remove(KEY_ICON_PACK + "_" + oldId).commit();
+
+        boolean oldBoolean = prefs.getBoolean(KEY_BACKGROUND_SHADOW + "_" + oldId, false);
+        prefs.edit().putBoolean(KEY_BACKGROUND_SHADOW + "_" + newId, oldBoolean).commit();
+        prefs.edit().remove(KEY_BACKGROUND_SHADOW + "_" + oldId).commit();
     }
 
     @Override
@@ -126,7 +145,11 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
         i.setAction("org.omnirom.WeatherIconPack");
         for (ResolveInfo r : packageManager.queryIntentActivities(i, 0)) {
             String packageName = r.activityInfo.packageName;
-            if (values.contains(r.activityInfo.name)) {
+            String label = r.activityInfo.loadLabel(getPackageManager()).toString();
+            if (label == null) {
+                label = r.activityInfo.packageName;
+            }
+            if (entries.contains(label)) {
                 continue;
             }
             if (packageName.equals(DEFAULT_WEATHER_ICON_PACKAGE)) {
@@ -134,10 +157,7 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
             } else {
                 values.add(r.activityInfo.name);
             }
-            String label = r.activityInfo.loadLabel(getPackageManager()).toString();
-            if (label == null) {
-                label = r.activityInfo.packageName;
-            }
+
             if (packageName.equals(DEFAULT_WEATHER_ICON_PACKAGE)) {
                 entries.add(0, label);
             } else {
@@ -148,14 +168,15 @@ public class WeatherAppWidgetConfigure extends PreferenceActivity {
         i.addCategory(CHRONUS_ICON_PACK_INTENT);
         for (ResolveInfo r : packageManager.queryIntentActivities(i, 0)) {
             String packageName = r.activityInfo.packageName;
-            if (values.contains(packageName + ".weather")) {
-                continue;
-            }
-            values.add(packageName + ".weather");
             String label = r.activityInfo.loadLabel(getPackageManager()).toString();
             if (label == null) {
                 label = r.activityInfo.packageName;
             }
+            if (entries.contains(label)) {
+                continue;
+            }
+            values.add(packageName + ".weather");
+
             entries.add(label);
         }
     }

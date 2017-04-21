@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
      Copyright (C) 2009 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +12,27 @@
      limitations under the License.
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:title="@string/weather_widget" >
+    android:title="@string/weather_widget">
 
-        <ListPreference
-            android:key="weather_icon_pack"
-            android:title="@string/weather_icon_pack_title" />
+    <ListPreference
+        android:key="weather_icon_pack"
+        android:title="@string/weather_icon_pack_title" />
 
-        <Preference
-            android:widgetLayout="@layout/preference_button"
-            android:persistent="false" />
+    <CheckBoxPreference
+        android:key="show_background"
+        android:title="@string/show_background_title" />
+
+    <PreferenceScreen
+        android:summary="@string/weather_config_summary"
+        android:title="@string/weather_config_title">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="org.omnirom.omnijaws.SettingsActivityService"
+            android:targetPackage="org.omnirom.omnijaws" />
+    </PreferenceScreen>
+
+    <Preference
+        android:persistent="false"
+        android:widgetLayout="@layout/preference_button" />
 
 </PreferenceScreen>

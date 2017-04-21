@@ -17,17 +17,15 @@
 package org.omnirom.omniextras.weather;
 
 import android.app.PendingIntent;
-import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -37,7 +35,6 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -48,8 +45,6 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 import org.omnirom.omniextras.R;
-import org.omnirom.omniextras.alarmclock.CustomAnalogAppWidgetConfigure;
-import org.omnirom.omniextras.alarmclock.CustomAppWidgetProvider;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -182,12 +177,21 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         }
 
         RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
+        widget.setImageViewBitmap(R.id.refresh, shadow(context.getResources(),
+                context.getResources().getDrawable(R.drawable.ic_menu_refresh)).getBitmap());
         Intent refreshIntent = new Intent();
         refreshIntent.setAction(REFRESH_BROADCAST);
         widget.setOnClickPendingIntent(R.id.refresh,
                 PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
 
-        widget.setViewVisibility(R.id.background_shadow, View.VISIBLE);
+        Intent configureIntent = new Intent(context, WeatherAppWidgetConfigure.class);
+        configureIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        widget.setOnClickPendingIntent(R.id.weather_data,
+                PendingIntent.getActivity(context, 0, configureIntent, PendingIntent.FLAG_UPDATE_CURRENT));
+
+        boolean backgroundShadow = prefs.getBoolean(WeatherAppWidgetConfigure.KEY_BACKGROUND_SHADOW + "_" + appWidgetId, false);
+        widget.setViewVisibility(R.id.background_shadow, backgroundShadow ? View.VISIBLE : View.GONE);
+
         OmniJawsClient.WeatherInfo weatherData = weatherClient.getWeatherInfo();
         if (weatherData == null) {
             Log.i(TAG, "updateWeather weatherData == null");
@@ -313,7 +317,7 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         final TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         Typeface font = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
         textPaint.setTypeface(font);
-        textPaint.setColor(resources.getColor(R.color.omni_jaws_detailed_temperature_color));
+        textPaint.setColor(resources.getColor(R.color.widget_text_color));
         textPaint.setTextAlign(Paint.Align.LEFT);
         textPaint.setShadowLayer(5, 0, 2, Color.BLACK);
         final int textSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14f, resources.getDisplayMetrics());
@@ -337,5 +341,35 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         canvas.drawText(str, width / 2 - bounds.width() / 2, height - textSize / 2, textPaint);
 
         return new BitmapDrawable(resources, bmp);
+    }
+
+    public static BitmapDrawable shadow(Resources resources, Drawable image) {
+        final Canvas canvas = new Canvas();
+        canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
+                Paint.FILTER_BITMAP_FLAG));
+        final int imageWidth = image.getIntrinsicWidth();
+        final int imageHeight = image.getIntrinsicHeight();
+        final Bitmap b = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(b);
+        image.setBounds(0, 0, imageWidth, imageHeight);
+        image.draw(canvas);
+
+        BlurMaskFilter blurFilter = new BlurMaskFilter(5,
+                BlurMaskFilter.Blur.OUTER);
+        Paint shadowPaint = new Paint();
+        shadowPaint.setColor(Color.BLACK);
+        shadowPaint.setMaskFilter(blurFilter);
+
+        int[] offsetXY = new int[2];
+        Bitmap b2 = b.extractAlpha(shadowPaint, offsetXY);
+
+        Bitmap bmResult = Bitmap.createBitmap(b.getWidth(), b.getHeight(),
+                Bitmap.Config.ARGB_8888);
+
+        canvas.setBitmap(bmResult);
+        canvas.drawBitmap(b2, 0, 0, null);
+        canvas.drawBitmap(b, -offsetXY[0], -offsetXY[1], null);
+
+        return new BitmapDrawable(resources, bmResult);
     }
 }
