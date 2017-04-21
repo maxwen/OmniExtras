@@ -18,7 +18,7 @@
     android:minWidth="@dimen/weather_widget_width"
     android:minHeight="@dimen/weather_widget_height"
     android:updatePeriodMillis="0"
-    android:previewImage="@drawable/ic_qs_weather_default_on"
+    android:previewImage="@drawable/appwidget_weather_preview"
     android:initialLayout="@layout/weather_appwidget"
     android:resizeMode="vertical|horizontal"
     android:minResizeWidth="@dimen/min_weather_widget_resize_width"

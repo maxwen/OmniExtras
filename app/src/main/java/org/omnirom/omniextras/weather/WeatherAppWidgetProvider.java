@@ -187,6 +187,7 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         widget.setOnClickPendingIntent(R.id.refresh,
                 PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
 
+        widget.setViewVisibility(R.id.background_shadow, View.VISIBLE);
         OmniJawsClient.WeatherInfo weatherData = weatherClient.getWeatherInfo();
         if (weatherData == null) {
             Log.i(TAG, "updateWeather weatherData == null");
@@ -295,6 +296,7 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         }
 
         RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
+        widget.setViewVisibility(R.id.background_shadow, View.VISIBLE);
         widget.setViewVisibility(R.id.condition_line, View.GONE);
         widget.setViewVisibility(R.id.progress_container, View.VISIBLE);
         appWidgetManager.updateAppWidget(appWidgetId, widget);
