@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:singleLine="true"
-                android:text="@string/omnijaws_service_unkown"
+                android:text="@string/omnijaws_service_init"
                 android:textAppearance="@style/Weather" />
 
             <TextView
@@ -91,6 +91,7 @@
                 android:layout_height="@dimen/weather_refresh_icon_size"
                 android:layout_gravity="center_vertical"
                 android:scaleType="centerInside"
+                android:visibility="gone"
                 android:src="@drawable/ic_menu_refresh" />
         </LinearLayout>
 
