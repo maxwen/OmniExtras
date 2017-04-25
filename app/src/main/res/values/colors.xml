@@ -9,4 +9,15 @@
     <color name="analog_clock_seconds_hand_color">@color/colorAccent</color>
     <color name="analog_clock_alarm_color">#d72929</color>
     <color name="widget_text_color">@android:color/white</color>
+    <color name="calendar_widget_row_in_progress">#6633b5e5</color>
+    <color name="calendar_widget_header">@android:color/white</color>
+    <!-- Text color of declined events in widget view -->
+    <color name="calendar_widget_item_declined_color">#66333333</color>
+    <!-- Text color of non-declined events in widget view -->
+    <color name="calendar_widget_item_standard_color">@android:color/black</color>
+    <color name="calendar_widget_no_events">@android:color/black</color>
+    <color name="calendar_past_bg_color">#FFDDDDDD</color>
+    <color name="calendar_past_text_color">#FF808080</color>
+    <color name="calendar_future_bg_color">#ffffffff</color>
+
 </resources>

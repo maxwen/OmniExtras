@@ -20,5 +20,9 @@
     <string name="show_background_title">Background shadow</string>
     <string name="weather_config_title">Service settings</string>
     <string name="weather_config_summary"></string>
+    <string name="calendar_widget">Agenda</string>
+    <string name="no_title_label">(No title)</string>
+    <string name="loading">Loading\u2026</string>
+    <string name="calendar_widget_no_events">No upcoming calendar events</string>
 
 </resources>
