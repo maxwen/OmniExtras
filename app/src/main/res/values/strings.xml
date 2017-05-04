@@ -12,8 +12,8 @@
     <string name="clock_color_title">Color</string>
     <string name="omnijaws_service_unkown">No weather data</string>
     <string name="omnijaws_service_error">Error loading weather data</string>
-    <string name="omnijaws_service_init">Waiting for weather data...</string>
-    <string name="omnijaws_service_progress">Updating...</string>
+    <string name="omnijaws_service_init">Waiting for weather data</string>
+    <string name="omnijaws_service_progress">Updating</string>
     <string name="weather_widget">Weather</string>
     <string name="omnijaws_current_text">Now</string>
     <string name="weather_icon_pack_title">Condition icon pack</string>
@@ -24,5 +24,7 @@
     <string name="no_title_label">(No title)</string>
     <string name="loading">Loading\u2026</string>
     <string name="calendar_widget_no_events">No upcoming calendar events</string>
+    <string name="omnijaws_service_error_marker" translatable="false">*</string>
+    <string name="omnijaws_service_disabled">Service disabled</string>
 
 </resources>

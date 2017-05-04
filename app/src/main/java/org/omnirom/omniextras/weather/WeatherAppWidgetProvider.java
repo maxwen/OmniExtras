@@ -1,19 +1,20 @@
 /*
- * Copyright (C) 2012 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
+* Copyright (C) 2017 The OmniROM Project
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program. If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 package org.omnirom.omniextras.weather;
 
 import android.app.PendingIntent;
@@ -52,10 +53,12 @@ import java.util.Date;
 
 public class WeatherAppWidgetProvider extends AppWidgetProvider {
     private static final String TAG = "WeatherAppWidgetProvider";
-    public static final boolean LOGGING = true;
+    private static final boolean LOGGING = true;
     private static final String REFRESH_BROADCAST = "org.omnirom.omniextras.WEATHER_REFRESH";
     private static final String WEATHER_UPDATE = "org.omnirom.omnijaws.WEATHER_UPDATE";
     private static final String WEATHER_ERROR = "org.omnirom.omnijaws.WEATHER_ERROR";
+    private static final String EXTRA_ERROR = "error";
+    private static final int EXTRA_ERROR_DISABLED = 2;
 
     @Override
     public void onEnabled(Context context) {
@@ -100,9 +103,10 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (LOGGING) {
-            Log.i(TAG, "WeatherUpdateService:onReceive: " + action);
+            Log.i(TAG, "onReceive: " + action);
         }
-        if (action.equals(WEATHER_UPDATE)) {
+        if (action.equals(WEATHER_UPDATE)
+                || Intent.ACTION_LOCALE_CHANGED.equals(action)) {
             updateAllWeather(context);
         }
         if (action.equals(REFRESH_BROADCAST)) {
@@ -111,7 +115,8 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
             weatherClient.updateWeather();
         }
         if (action.equals(WEATHER_ERROR)) {
-            showErrorState(context);
+            int errorReason = intent.getIntExtra(EXTRA_ERROR, 0);
+            showErrorState(context, errorReason);
         }
         super.onReceive(context, intent);
     }
@@ -166,16 +171,16 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    public static void showErrorState(Context context) {
+    public static void showErrorState(Context context, int errorReason) {
         if (LOGGING) {
-            Log.i(TAG, "showErrorState");
+            Log.i(TAG, "showErrorState " + errorReason);
         }
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         if (appWidgetManager != null) {
             ComponentName componentName = new ComponentName(context, WeatherAppWidgetProvider.class);
             int[] appWidgetIds = appWidgetManager.getAppWidgetIds(componentName);
             for (int appWidgetId : appWidgetIds) {
-                showError(context, appWidgetManager, appWidgetId);
+                showError(context, appWidgetManager, appWidgetId, errorReason);
             }
         }
     }
@@ -210,23 +215,23 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
 
         boolean backgroundShadow = prefs.getBoolean(WeatherAppWidgetConfigure.KEY_BACKGROUND_SHADOW + "_" + appWidgetId, false);
         widget.setViewVisibility(R.id.background_shadow, backgroundShadow ? View.VISIBLE : View.GONE);
+        initWidget(widget);
 
         OmniJawsClient.WeatherInfo weatherData = weatherClient.getWeatherInfo();
-        if (weatherData == null) {
-            Log.i(TAG, "updateWeather weatherData == null");
+        if (true /*weatherData == null*/) {
+            Log.e(TAG, "updateWeather weatherData == null");
+            widget.setViewVisibility(R.id.current_weather_city, View.INVISIBLE);
+            widget.setViewVisibility(R.id.current_weather_timestamp, View.INVISIBLE);
             widget.setViewVisibility(R.id.current_weather_data, View.GONE);
-            widget.setViewVisibility(R.id.condition_line, View.GONE);
             widget.setTextViewText(R.id.no_weather_notice, context.getResources().getString(R.string.omnijaws_service_unkown));
             widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
-            widget.setViewVisibility(R.id.progress_container, View.GONE);
-            appWidgetManager.updateAppWidget(appWidgetId, widget);
+            appWidgetManager.partiallyUpdateAppWidget(appWidgetId, widget);
             return;
         }
-        Log.i(TAG, "updateWeather " + weatherData.toString());
+        if (LOGGING) {
+            Log.i(TAG, "updateWeather " + weatherData.toString());
+        }
         widget.setViewVisibility(R.id.no_weather_notice, View.GONE);
-        widget.setViewVisibility(R.id.condition_line, View.VISIBLE);
-        widget.setViewVisibility(R.id.current_weather_data, View.VISIBLE);
-        widget.setViewVisibility(R.id.progress_container, View.GONE);
 
         Bundle newOptions = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int minHeight = context.getResources().getDimensionPixelSize(R.dimen.weather_widget_height);
@@ -306,8 +311,8 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
 
         widget.setViewVisibility(R.id.current_weather_line, showLocalDetails ? View.VISIBLE : View.GONE);
         widget.setTextViewText(R.id.current_weather_city, weatherData.city);
-        widget.setTextViewText(R.id.current_weather_data, weatherData.windSpeed + " " + weatherData.windUnits + " " + weatherData.windDirection + " - " +
-                weatherData.humidity);
+        widget.setTextViewText(R.id.current_weather_data, weatherData.windSpeed + " " + weatherData.windUnits + " "
+                + weatherData.windDirection + " - " + weatherData.humidity);
 
         appWidgetManager.updateAppWidget(appWidgetId, widget);
     }
@@ -320,52 +325,47 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         }
 
         RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean backgroundShadow = prefs.getBoolean(WeatherAppWidgetConfigure.KEY_BACKGROUND_SHADOW + "_" + appWidgetId, false);
-        widget.setViewVisibility(R.id.background_shadow, backgroundShadow ? View.VISIBLE : View.GONE);
         widget.setViewVisibility(R.id.condition_line, View.GONE);
         widget.setViewVisibility(R.id.progress_container, View.VISIBLE);
-        widget.setViewVisibility(R.id.current_weather_data, View.GONE);
-        widget.setTextViewText(R.id.current_weather_city, "");
-        widget.setTextViewText(R.id.current_weather_timestamp, "");
-        widget.setTextViewText(R.id.no_weather_notice, context.getResources().getString(R.string.omnijaws_service_progress));
-        widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
-        widget.setImageViewBitmap(R.id.refresh, shadow(context.getResources(),
-                context.getResources().getDrawable(R.drawable.ic_menu_refresh)).getBitmap());
-        widget.setViewVisibility(R.id.refresh, View.VISIBLE);
-        Intent refreshIntent = new Intent();
-        refreshIntent.setAction(REFRESH_BROADCAST);
-        widget.setOnClickPendingIntent(R.id.refresh,
-                PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-        appWidgetManager.updateAppWidget(appWidgetId, widget);
+
+        appWidgetManager.partiallyUpdateAppWidget(appWidgetId, widget);
     }
 
     private static void showError(
-            Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+            Context context, AppWidgetManager appWidgetManager, int appWidgetId, int errorReason) {
 
         if (LOGGING) {
             Log.i(TAG, "showError " + appWidgetId);
         }
 
         RemoteViews widget = new RemoteViews(context.getPackageName(), R.layout.weather_appwidget);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean backgroundShadow = prefs.getBoolean(WeatherAppWidgetConfigure.KEY_BACKGROUND_SHADOW + "_" + appWidgetId, false);
-        widget.setViewVisibility(R.id.background_shadow, backgroundShadow ? View.VISIBLE : View.GONE);
-        widget.setViewVisibility(R.id.condition_line, View.GONE);
+        initWidget(widget);
+
+        if (errorReason == EXTRA_ERROR_DISABLED) {
+            widget.setViewVisibility(R.id.condition_line, View.GONE);
+            widget.setViewVisibility(R.id.current_weather_data, View.GONE);
+            widget.setTextViewText(R.id.no_weather_notice, context.getResources().getString(R.string.omnijaws_service_disabled));
+            widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
+            widget.setViewVisibility(R.id.current_weather_city, View.INVISIBLE);
+            widget.setViewVisibility(R.id.current_weather_timestamp, View.INVISIBLE);
+        } else {
+            widget.setTextViewText(R.id.error_marker, context.getResources().getString(R.string.omnijaws_service_error_marker));
+            widget.setViewVisibility(R.id.error_marker, View.VISIBLE);
+            widget.setViewVisibility(R.id.no_weather_notice, View.GONE);
+        }
+
+        appWidgetManager.partiallyUpdateAppWidget(appWidgetId, widget);
+    }
+
+    private static void initWidget(RemoteViews widget) {
         widget.setViewVisibility(R.id.progress_container, View.GONE);
-        widget.setViewVisibility(R.id.current_weather_data, View.GONE);
-        widget.setTextViewText(R.id.current_weather_city, "");
-        widget.setTextViewText(R.id.current_weather_timestamp, "");
-        widget.setTextViewText(R.id.no_weather_notice, context.getResources().getString(R.string.omnijaws_service_error));
-        widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
-        widget.setImageViewBitmap(R.id.refresh, shadow(context.getResources(),
-                context.getResources().getDrawable(R.drawable.ic_menu_refresh)).getBitmap());
+        widget.setViewVisibility(R.id.condition_line, View.VISIBLE);
+        widget.setViewVisibility(R.id.timestamp_container, View.VISIBLE);
+        widget.setViewVisibility(R.id.current_weather_city, View.VISIBLE);
+        widget.setViewVisibility(R.id.current_weather_data, View.VISIBLE);
+        widget.setViewVisibility(R.id.current_weather_timestamp, View.VISIBLE);
+        widget.setViewVisibility(R.id.error_marker, View.INVISIBLE);
         widget.setViewVisibility(R.id.refresh, View.VISIBLE);
-        Intent refreshIntent = new Intent();
-        refreshIntent.setAction(REFRESH_BROADCAST);
-        widget.setOnClickPendingIntent(R.id.refresh,
-                PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-        appWidgetManager.updateAppWidget(appWidgetId, widget);
     }
 
     private static BitmapDrawable overlay(Resources resources, Drawable image, String min, String max, String tempUnits) {
@@ -429,8 +429,8 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
                 Bitmap.Config.ARGB_8888);
 
         canvas.setBitmap(bmResult);
-        canvas.drawBitmap(b2, 0, 0, null);
-        canvas.drawBitmap(b, -offsetXY[0], -offsetXY[1], null);
+        canvas.drawBitmap(b2, offsetXY[0], offsetXY[1], null);
+        canvas.drawBitmap(b, 0, 0, null);
 
         return new BitmapDrawable(resources, bmResult);
     }
