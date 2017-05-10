@@ -206,7 +206,6 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         refreshIntent.setAction(REFRESH_BROADCAST);
         widget.setOnClickPendingIntent(R.id.refresh,
                 PendingIntent.getBroadcast(context, 0, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-        widget.setViewVisibility(R.id.refresh, View.VISIBLE);
 
         Intent configureIntent = new Intent(context, WeatherAppWidgetConfigure.class);
         configureIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
@@ -218,10 +217,9 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         initWidget(widget);
 
         OmniJawsClient.WeatherInfo weatherData = weatherClient.getWeatherInfo();
-        if (true /*weatherData == null*/) {
+        if (weatherData == null) {
             Log.e(TAG, "updateWeather weatherData == null");
-            widget.setViewVisibility(R.id.current_weather_city, View.INVISIBLE);
-            widget.setViewVisibility(R.id.current_weather_timestamp, View.INVISIBLE);
+            widget.setViewVisibility(R.id.current_weather_city, View.GONE);
             widget.setViewVisibility(R.id.current_weather_data, View.GONE);
             widget.setTextViewText(R.id.no_weather_notice, context.getResources().getString(R.string.omnijaws_service_unkown));
             widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
@@ -250,7 +248,7 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         Long timeStamp = weatherData.timeStamp;
         String format = DateFormat.is24HourFormat(context) ? "HH:mm" : "hh:mm a";
         SimpleDateFormat sdf = new SimpleDateFormat(format);
-        widget.setTextViewText(R.id.current_weather_timestamp, sdf.format(timeStamp));
+        widget.setTextViewText(R.id.current_weather_city, weatherData.city + " (" + sdf.format(timeStamp) + ")");
 
         sdf = new SimpleDateFormat("EE");
         Calendar cal = Calendar.getInstance();
@@ -310,7 +308,6 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
         widget.setViewVisibility(R.id.current_text, showDays ? View.VISIBLE : View.GONE);
 
         widget.setViewVisibility(R.id.current_weather_line, showLocalDetails ? View.VISIBLE : View.GONE);
-        widget.setTextViewText(R.id.current_weather_city, weatherData.city);
         widget.setTextViewText(R.id.current_weather_data, weatherData.windSpeed + " " + weatherData.windUnits + " "
                 + weatherData.windDirection + " - " + weatherData.humidity);
 
@@ -346,8 +343,7 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
             widget.setViewVisibility(R.id.current_weather_data, View.GONE);
             widget.setTextViewText(R.id.no_weather_notice, context.getResources().getString(R.string.omnijaws_service_disabled));
             widget.setViewVisibility(R.id.no_weather_notice, View.VISIBLE);
-            widget.setViewVisibility(R.id.current_weather_city, View.INVISIBLE);
-            widget.setViewVisibility(R.id.current_weather_timestamp, View.INVISIBLE);
+            widget.setViewVisibility(R.id.current_weather_city, View.GONE);
         } else {
             widget.setTextViewText(R.id.error_marker, context.getResources().getString(R.string.omnijaws_service_error_marker));
             widget.setViewVisibility(R.id.error_marker, View.VISIBLE);
@@ -360,12 +356,9 @@ public class WeatherAppWidgetProvider extends AppWidgetProvider {
     private static void initWidget(RemoteViews widget) {
         widget.setViewVisibility(R.id.progress_container, View.GONE);
         widget.setViewVisibility(R.id.condition_line, View.VISIBLE);
-        widget.setViewVisibility(R.id.timestamp_container, View.VISIBLE);
         widget.setViewVisibility(R.id.current_weather_city, View.VISIBLE);
         widget.setViewVisibility(R.id.current_weather_data, View.VISIBLE);
-        widget.setViewVisibility(R.id.current_weather_timestamp, View.VISIBLE);
-        widget.setViewVisibility(R.id.error_marker, View.INVISIBLE);
-        widget.setViewVisibility(R.id.refresh, View.VISIBLE);
+        widget.setViewVisibility(R.id.error_marker, View.GONE);
     }
 
     private static BitmapDrawable overlay(Resources resources, Drawable image, String min, String max, String tempUnits) {
